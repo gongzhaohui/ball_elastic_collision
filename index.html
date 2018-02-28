@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+        content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Balls</title>
+    <style>
+        body {
+            margin: 0;
+        }
+    </style>
+</head>
+<body onload="main()">
+<canvas id="canvas" height="700" width="800"></canvas>
+
+<!-- vertex shader -->
+<script id="2d-vertex-shader" type="x-shader/x-vertex">
+attribute vec4 a_position;
+uniform float u_size; 
+varying vec4 v_color;
+
+void main() {
+    gl_Position = a_position;
+    gl_PointSize = u_size;
+
+    // Convert from clipspace to colorspace.
+    // Clipspace goes -1.0 to +1.0
+    // Colorspace goes from 0.0 to 1.0
+    v_color = gl_Position * 0.5;
+}
+</script>
+<!-- fragment shader -->
+<script id="2d-fragment-shader" type="x-shader/x-fragment">
+precision mediump float;
+varying vec4 v_color;
+
+void main() {
+    gl_FragColor = v_color;
+
+    float d = distance(gl_PointCoord, vec2(0.5,0.5));
+    if (d < 0.5) {
+        vec4 color = v_color + d - 0.2;
+        gl_FragColor = color;
+    } else { 
+        discard;
+    }
+}
+</script>
+<script src="https://webglfundamentals.org/webgl/resources/webgl-utils.js"></script>
+<script src="https://webglfundamentals.org/webgl/resources/m3.js"></script>
+<script src="main.js"></script>
+</body>
+</html>
