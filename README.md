@@ -13,6 +13,31 @@
 
 -------------------
 
+## 片段着色器
+
+> 在顶点着色器中，设置v_color = gl_Position * 0.5;
+> 在片段着色器中，首先因为我们要画圆球，所以判断一下当前插值的点跟球心的距离，插值的时候，是按方形进行插值的，我们只对距离小于等于半径的点进行着色，
+> 如果距离小于半径，则设置颜色色值为 v_color + d - 0.2;（为了实现从圆心到边缘的颜色渐变)
+> 
+### 代码块
+``` javascript
+    <script id="2d-fragment-shader" type="x-shader/x-fragment">
+        precision mediump float;
+        varying vec4 v_color;
+
+        void main() {
+            gl_FragColor = v_color;
+
+            float d = distance(gl_PointCoord, vec2(0.5,0.5));
+            if (d < 0.5) {
+                vec4 color = v_color + d - 0.2;
+                gl_FragColor = color;
+            } else { 
+                discard;
+            }
+        }
+    </script>
+```
 
 ## 小球撞击墙体
 
@@ -40,4 +65,29 @@
             a.vy *= this.bounce;
         }
     });
+```
+
+## 小球之间碰撞
+
+> 首先通过两个小球之间的距离，如果距离小于等于小球直径，则两小球叠加
+> 小球发生叠加时，由两小球坐标计算出两个小球之间的夹角。
+> 通过夹角计算出，要将两小球分开的最短距离， 这一距离乘以小球间的弹性，得到小球分开的反向加速度。
+> 将反向加速度加上小球的原有x,y轴速度。
+> 由于速度值大于反向加速度值，所以小球将继续往里挤压直到速度方向与加速度方向一致后，加速分离。因此可以产生挤压弹开效果。
+> 
+### 代码块
+``` javascript
+    if (dist <= this.misDist) {
+        //碰撞
+        var angle, tx, ty, ax, ay;
+        angle = Math.atan2(dy, dx);
+        tx = ballA.x + Math.cos(angle) * this.misDist;
+        ty = ballA.y + Math.sin(angle) * this.misDist;
+        ax = (tx - ballB.x) * this.spring;
+        ay = (ty - ballB.y) * this.spring;
+        ballA.vx -= ax;
+        ballA.vy -= ay;
+        ballB.vx += ax;
+        ballB.vy += ay;
+    }
 ```
