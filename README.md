@@ -1,5 +1,6 @@
 # 小球弹性碰撞
 基于webGL的小球弹性碰撞demo
+演示地址：<a href="http://htmlpreview.github.io/?https://github.com/wisdomofgod/ball_elastic_collision/blob/master/index.html">http://htmlpreview.github.io/?https://github.com/wisdomofgod/ball_elastic_collision/blob/master/index.html</a>
 
 **小球弹性碰撞**：
 
