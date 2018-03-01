@@ -1,11 +1,14 @@
-# 小球弹性碰撞
+# 三维小球弹性碰撞
 基于webGL的小球弹性碰撞demo
 
 演示地址：<a href="http://htmlpreview.github.io/?https://github.com/wisdomofgod/ball_elastic_collision/blob/master/index.html">http://htmlpreview.github.io/?https://github.com/wisdomofgod/ball_elastic_collision/blob/master/index.html</a>
 
+二维小球地址：
+<a href="https://github.com/wisdomofgod/ball_elastic_collision/tree/2d">https://github.com/wisdomofgod/ball_elastic_collision/tree/2d</a>
+
 **小球弹性碰撞**：
 
-- **小球设置** ：小球位置，速度，角度由random函数生成，其中角度由x，y轴速度控制；
+- **小球设置** ：小球位置，速度，角度由random函数生成，其中角度由x，y, z轴速度控制, 所有小球等大小，显示的大小由距离屏幕远近决定，近大远小，；
 - **小球颜色** ：小球颜色由小球所在位置计算得出，色值 = 小球位置 * 0.5， 同时增加由圆心向外的渐变效果；
 - **小球碰撞** ：小球碰撞有小球撞击墙壁与撞击其他小球两种情况，有两个撞击的弹性参数决定反弹力。
  ![Alt text](./WechatIMG64.jpeg)
@@ -64,15 +67,28 @@
             a.y = this.B;
             a.vy *= this.bounce;
         }
+        if (a.z < this.F) {
+            a.z = this.F;
+            a.vz *= this.bounce;
+        }
+        if (a.z > this.BACK) {
+            a.z = this.BACK;
+            a.vz *= this.bounce;
+        }
     });
 ```
 
 ## 小球之间碰撞
 
 > 首先通过两个小球之间的距离，如果距离小于等于小球直径，则两小球叠加
-> 小球发生叠加时，由两小球坐标计算出两个小球之间的夹角。
-> 通过夹角计算出，要将两小球分开的最短距离， 这一距离乘以小球间的弹性，得到小球分开的反向加速度。
-> 将反向加速度加上小球的原有x,y轴速度。
+> 小球发生叠加时，计算三个平面上投影夹角。
+> 首先是两个小球之间的连线在x0z上的投影, 投影的线段长度为 dx * dx + dz * dz 的开平方
+>（投影上的线段点在x轴、z轴上的投影差值是，坐标系中,两点的x, z轴坐标差值
+> 有了投影线段长后， 我们可以通过反余弦函数acos计算出x,z轴与投影线段的夹角
+> 同时，做投影线段与真实线段的平面，投影点与真实点的高度差是两点坐标的y坐标差值
+> 由此可以计算出投影的夹角
+> 有了这三个夹角，我们就可以计算出，要将两小球分开的最短距离， 这一距离乘以小球间的弹性，得到小球分开的反向加速度。
+> 将反向加速度加上小球的原有x, y, z轴速度。
 > 由于速度值大于反向加速度值，所以小球将继续往里挤压直到速度方向与加速度方向一致后，加速分离。因此可以产生挤压弹开效果。
 > 
 ### 代码块
@@ -80,14 +96,25 @@
     if (dist <= this.misDist) {
         //碰撞
         var angle, tx, ty, ax, ay;
-        angle = Math.atan2(dy, dx);
-        tx = ballA.x + Math.cos(angle) * this.misDist;
-        ty = ballA.y + Math.sin(angle) * this.misDist;
+        var long = Math.sqrt(dx * dx + dz * dz);
+        var angle = Math.acos(dx / long);
+        var angle2 = Math.acos(dz / long);
+        var angle3 = Math.atan2(dy, long);
+        long = Math.cos(angle3) * this.misDist;
+        var wy = Math.sin(angle3) * this.misDist;
+        var wx = Math.cos(angle) * long;
+        var wz = Math.cos(angle2) * long;
+        tx = ballA.x + wx;
+        ty = ballA.y + wy;
+        tz = ballA.z + wz;
         ax = (tx - ballB.x) * this.spring;
         ay = (ty - ballB.y) * this.spring;
+        az = (tz - ballB.z) * this.spring;
         ballA.vx -= ax;
         ballA.vy -= ay;
+        ballA.vz -= az;
         ballB.vx += ax;
         ballB.vy += ay;
+        ballB.vz += az;
     }
 ```

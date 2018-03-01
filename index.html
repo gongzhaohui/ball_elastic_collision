@@ -18,12 +18,16 @@
 <!-- vertex shader -->
 <script id="2d-vertex-shader" type="x-shader/x-vertex">
 attribute vec4 a_position;
-uniform float u_size; 
+uniform float u_size;
+uniform mat4 u_matrix; 
 varying vec4 v_color;
+uniform float u_fudgeFactor;
 
 void main() {
     gl_Position = a_position;
-    gl_PointSize = u_size;
+
+    float zToDivideBy = 1.0 + a_position.z * u_fudgeFactor;
+    gl_PointSize = u_size / zToDivideBy;
 
     // Convert from clipspace to colorspace.
     // Clipspace goes -1.0 to +1.0
@@ -39,7 +43,7 @@ varying vec4 v_color;
 void main() {
     gl_FragColor = v_color;
 
-    float d = distance(gl_PointCoord, vec2(0.5,0.5));
+    float d = distance(gl_PointCoord, vec2(0.5, 0.5));
     if (d < 0.5) {
         vec4 color = v_color + d - 0.2;
         gl_FragColor = color;
